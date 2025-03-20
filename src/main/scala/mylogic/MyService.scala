@@ -1,7 +1,10 @@
 package mylogic
 
+import cats.data.Validated
 import cats.effect.IO
+import cats.implicits._
 import mymodel._
+import mylogic.Validators.{ArrayElementError, ArrayLengthError, TargetValueError, validateArrayElements, validateArrayLength, validateTarget, ValidationError}
 
 import scala.collection.mutable.ListBuffer
 
@@ -13,8 +16,23 @@ class MyService {
 
   def getIndex(reqIdx: RequestIndex): IO[Either[ErrorInfo, ResponseIndex]] =
     IO {
-      if (reqIdx.data.isEmpty) {
-        Left(ErrorInfo("Input array is empty"))
+      val errors = validateReqIdx(reqIdx)
+
+      if (errors.isInvalid) {
+        val errorStr = errors.fold(
+          errors => errors.map {
+            case ArrayLengthError(actual, min, max) =>
+              s"Array length must be between $min and $max, but was $actual"
+            case ArrayElementError(value, min, max) =>
+              s"Array contains invalid element $value. Values must be between $min and $max"
+            case TargetValueError(value, min, max) =>
+              s"Target value $value is invalid. Must be between $min and $max"
+          }.mkString("\n"),
+          _ => "" // This won't be used since we're checking isInvalid
+        )
+
+        Left(ErrorInfo(errorStr))
+
       } else {
         val data = reqIdx.data
 
@@ -52,6 +70,28 @@ class MyService {
 
   private def addToResults(req: MyRequest, resp: MyResponse): Unit =
     results += Tuple2(req, resp)
+
+  private def validateReqIdx(reqIdx: RequestIndex): Validated[List[ValidationError], RequestIndex] = {
+    (
+      validateArrayLength(reqIdx.data).toValidatedNel, // Convert to ValidatedNel
+      validateArrayElements(reqIdx.data).toValidatedNel, // Convert to ValidatedNel
+      validateTarget(reqIdx.target).toValidatedNel // Convert to ValidatedNel
+    ).mapN { (_, _, _) => reqIdx } // Combine validations
+      .leftMap(_.toList) // Convert NonEmptyList to List
+  }
+
+  // Pretty printing of validation errors
+  //def formatErrors(errors: List[ValidationError]): String = {
+  //  errors.map {
+  //    case ArrayLengthError(actual, min, max) =>
+  //      s"Array length must be between $min and $max, but was $actual"
+  //    case ArrayElementError(value, min, max) =>
+  //      s"Array contains invalid element $value. Values must be between $min and $max"
+  //    case TargetValueError(value, min, max) =>
+  //      s"Target value $value is invalid. Must be between $min and $max"
+  //  }.mkString("\n")
+  //  }
+
 }
 
 object MyService {
