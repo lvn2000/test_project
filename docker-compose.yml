@@ -1,0 +1,13 @@
+services:
+  app:
+    restart: unless-stopped
+    build:
+      context: .
+      args:
+        - project_path=${CONTAINER_PROJECT_DIR}
+    image: test_project
+    container_name: test_project
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:${CONTAINER_PROJECT_DIR}
