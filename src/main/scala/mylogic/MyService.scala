@@ -14,7 +14,9 @@ class MyService {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  val defaultTarget = 42
+  private val config = ConfigLoader.config
+
+  val defaultTarget = config.defaultTarget.toInt
 
   val results = new ListBuffer[(MyRequest, MyResponse)]()
 
