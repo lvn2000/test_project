@@ -34,6 +34,14 @@ object MainEndpoint {
     .serverLogic { request => service.getIndex(request) }
 
   //Route for evaluating get target
+  //example cUrl:
+  //curl --request GET \
+  //  --url http://localhost:8080/target \
+  //  --header 'Content-Type: application/json' \
+  //  --header 'User-Agent: insomnia/10.3.0' \
+  //  --data '{
+  //	"target":18
+  //}'
   val getTarget: ServerEndpoint[Any, IO] = endpoint.get
     .in("target")
     .in(jsonBody[RequestTarget])
