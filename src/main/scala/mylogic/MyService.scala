@@ -3,12 +3,16 @@ package mylogic
 import cats.data.Validated
 import cats.effect.IO
 import cats.implicits._
+import mylogic.Validators.{ValidationError, _}
 import mymodel._
+import org.slf4j.LoggerFactory
 import mylogic.Validators.{ArrayElementError, ArrayLengthError, TargetValueError, validateArrayElements, validateArrayLength, validateTarget, ValidationError}
 
 import scala.collection.mutable.ListBuffer
 
 class MyService {
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   val defaultTarget = 42
 
@@ -16,6 +20,9 @@ class MyService {
 
   def getIndex(reqIdx: RequestIndex): IO[Either[ErrorInfo, ResponseIndex]] =
     IO {
+
+      logger.info(s"Request index operation: ${reqIdx.toString}  ")
+
       val errors = validateReqIdx(reqIdx)
 
       if (errors.isInvalid) {
@@ -30,7 +37,7 @@ class MyService {
           }.mkString("\n"),
           _ => "" // This won't be used since we're checking isInvalid
         )
-
+        logger.error(s"Errors during request index operation: $errorStr")
         Left(ErrorInfo(errorStr))
 
       } else {
@@ -44,27 +51,32 @@ class MyService {
           }.toList)
 
         addToResults(reqIdx, resp)
+        logger.info(s"Result of processing request index operation: ${resp.toString}")
         Right(resp)
       }
     }
 
   def getTarget(req: RequestTarget): IO[Either[ErrorInfo, ResponseTarget]] =
     IO {
+      logger.info(s"Get target operation: ${req.toString}")
       val resp = ResponseTarget(req.target.getOrElse(defaultTarget))
       addToResults(req, resp)
+      logger.info(s"Result of get target operation: ${resp.toString} ")
       Right(resp)
     }
 
   def find(req: RequestFind): IO[Either[ErrorInfo, ResponseFind]] =
     IO {
+      logger.info(s"Find operation request: ${req.toString}")
       val filtRes = results.filter(v => v._1 match {
         case ri: RequestIndex => ri.data.exists(d => req.data == d) ||
           req.target.map(t => t == ri.target).getOrElse(false)
         case rt: RequestTarget => rt.target == req.target
       }
       )
-
-      Right(ResponseFind(filtRes.toList.map(_._2)))
+      val res = ResponseFind(filtRes.toList.map(_._2))
+      logger.info(s"Result of find opertion: ${res.toString}")
+      Right(res)
     }
 
 
@@ -79,18 +91,6 @@ class MyService {
     ).mapN { (_, _, _) => reqIdx } // Combine validations
       .leftMap(_.toList) // Convert NonEmptyList to List
   }
-
-  // Pretty printing of validation errors
-  //def formatErrors(errors: List[ValidationError]): String = {
-  //  errors.map {
-  //    case ArrayLengthError(actual, min, max) =>
-  //      s"Array length must be between $min and $max, but was $actual"
-  //    case ArrayElementError(value, min, max) =>
-  //      s"Array contains invalid element $value. Values must be between $min and $max"
-  //    case TargetValueError(value, min, max) =>
-  //      s"Target value $value is invalid. Must be between $min and $max"
-  //  }.mkString("\n")
-  //  }
 
 }
 

@@ -12,7 +12,8 @@ lazy val root = (project in file("."))
                                 tapir_core, tapir_json, tapir_server,
                                 https,
                                 circe_generic, cats_effect,
-                                log)
+                                log,
+                                pprint)
 )
 
 // See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for instructions on how to publish to Sonatype.
