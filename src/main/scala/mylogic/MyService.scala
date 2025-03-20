@@ -6,7 +6,7 @@ import cats.implicits._
 import mylogic.Validators.{ValidationError, _}
 import mymodel._
 import org.slf4j.LoggerFactory
-import mylogic.Validators.{ArrayElementError, ArrayLengthError, TargetValueError, validateArrayElements, validateArrayLength, validateTarget, ValidationError}
+import mylogic.Validators.{ArrayElementError, ArrayLengthError, TargetValueError, ValidationError, validateArrayElements, validateArrayLength, validateTarget}
 
 import scala.collection.mutable.ListBuffer
 
@@ -16,7 +16,11 @@ class MyService {
 
   private val config = ConfigLoader.config
 
-  val defaultTarget = config.defaultTarget.toInt
+  val defaultTarget = config.defaultTarget.toIntOption.getOrElse(42)
+  val maxRequestsPerMinute = config.maxRequestsPerMinute.toIntOption.getOrElse(5)
+  val timeWindowMillis = config.timeWindowMillis.toLongOption.getOrElse("6000".toLong)
+
+  val rateLimiter = RateLimiter(maxRequestsPerMinute, timeWindowMillis)
 
   val results = new ListBuffer[(MyRequest, MyResponse)]()
 
@@ -67,18 +71,30 @@ class MyService {
       Right(resp)
     }
 
-  def find(req: RequestFind): IO[Either[ErrorInfo, ResponseFind]] =
+  def find(clientIdOpt: Option[String], req: RequestFind): IO[Either[ErrorInfo, ResponseFind]] =
     IO {
+
       logger.info(s"Find operation request: ${req.toString}")
-      val filtRes = results.filter(v => v._1 match {
-        case ri: RequestIndex => ri.data.exists(d => req.data == d) ||
-          req.target.map(t => t == ri.target).getOrElse(false)
-        case rt: RequestTarget => rt.target == req.target
+
+      val clientId = clientIdOpt.getOrElse("anonymous")
+
+      if (rateLimiter.isAllowed(clientId)) {
+
+        val filtRes = results.filter(v => v._1 match {
+          case ri: RequestIndex => ri.data.exists(d => req.data == d) ||
+            req.target.map(t => t == ri.target).getOrElse(false)
+          case rt: RequestTarget => rt.target == req.target
+        }
+        )
+        val res = ResponseFind(filtRes.toList.map(_._2))
+        logger.info(s"Result of find opertion: ${res.toString}")
+        Right(res)
+      } else {
+        val sErr = s"Rate limit exceeded. Maximum $maxRequestsPerMinute requests per minute allowed."
+        logger.error(sErr)
+        Left(ErrorInfo(sErr))
       }
-      )
-      val res = ResponseFind(filtRes.toList.map(_._2))
-      logger.info(s"Result of find opertion: ${res.toString}")
-      Right(res)
+
     }
 
 

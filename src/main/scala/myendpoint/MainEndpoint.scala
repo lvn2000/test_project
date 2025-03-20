@@ -54,9 +54,10 @@ object MainEndpoint {
   val find: ServerEndpoint[Any, IO] = endpoint.post
     .in("find")
     .in(jsonBody[RequestFind])
+    .in(header[Option[String]]("X-Client-ID"))
     .errorOut(statusCode(StatusCode.BadRequest).and(jsonBody[ErrorInfo]))
     .out(statusCode(StatusCode.Ok).and(jsonBody[ResponseFind]))
-    .serverLogic { request => service.find(request) }
+    .serverLogic { case (request, clientId) => service.find(clientId, request) }
 
   // routes
   val helloRoutes: HttpRoutes[IO] = Http4sServerInterpreter[IO]()
