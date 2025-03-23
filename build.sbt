@@ -38,9 +38,11 @@ assemblyMergeStrategy in assembly := {
 mainClass in assembly := Some("MyMain")
 
 enablePlugins(JavaAppPackaging, DockerPlugin)
+enablePlugins(DockerPlugin)
+
 // Docker specific settings
 Docker / packageName := "test_project"
 Docker / version := "latest"
+dockerBaseImage := "openjdk:24-ea-jdk-slim"
 Docker / maintainer := "vlad_lubenchenko@hotmail.com"
 Docker / dockerExposedPorts := Seq(8080)
-Docker / dockerBaseImage := "eclipse-temurin:17-jre-alpine"

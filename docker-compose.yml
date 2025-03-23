@@ -1,13 +1,9 @@
 services:
-  app:
-    restart: unless-stopped
-    build:
-      context: .
-      args:
-        - project_path=${CONTAINER_PROJECT_DIR}
-    image: test_project
+  test_project:
+    image: test_project:latest
     container_name: test_project
+    environment:
+      - ENV_VAR_NAME=value
     ports:
       - "8080:8080"
-    volumes:
-      - ./:${CONTAINER_PROJECT_DIR}
+    restart: always
