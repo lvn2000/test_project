@@ -18,8 +18,11 @@ local.conf
 .DS_Store
 .local/
 version.sbt
-**/.bloop
-.metals
-.vscode
+**/.bloop/
+.metals/
+.vscode/
 **/metals.sbt
+**/.lh/
+./bloop/
+**/lh-out/
 # git rm -r --cached .vscode
