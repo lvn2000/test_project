@@ -1,28 +1,37 @@
-version.md
-logback-dev.xml
-.idea/
-.ivy2/
-.sbt/
+# Build and IDE files
+**/.bloop/
+**/.metals/
+**/.vscode/
+**/metals.sbt
+**/.sbt/
+**/.bsp/
+**/.idea/
+**/target/
+**/.lh/
+
+# Environment and config files
 *.env
-*.log
-*.iml
-*target/
 local.conf
-*.http
-.env
-.bsp
+logback-dev.xml
+version.sbt
+
+# Logs and temporary files
+*.log
 .history
+
+# IDE specific files
+*.iml
+.DS_Store
+
+# Data files
 *.txt
 *.xlsx
 *.db.json
-.DS_Store
+
+# Local development
 .local/
-version.sbt
-**/.bloop/
-.metals/
-.vscode/
-**/metals.sbt
-**/.lh/
-./bloop/
-**/lh-out/
-# git rm -r --cached .vscode
+.ivy2/
+
+# Project specific
+version.md
+*.http
