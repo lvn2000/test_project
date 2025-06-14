@@ -15,7 +15,8 @@ lazy val root = (project in file("."))
       https,
       circe_generic, cats_effect, conf, conf_cats,
       log,
-      blemale)
+      blemale,
+      testDep)
   )
 
 Compile / run / fork := true

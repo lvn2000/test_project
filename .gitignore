@@ -1,0 +1,25 @@
+version.md
+logback-dev.xml
+.idea/
+.ivy2/
+.sbt/
+*.env
+*.log
+*.iml
+*target/
+local.conf
+*.http
+.env
+.bsp
+.history
+*.txt
+*.xlsx
+*.db.json
+.DS_Store
+.local/
+version.sbt
+**/.bloop
+.metals
+.vscode
+**/metals.sbt
+# git rm -r --cached .vscode
