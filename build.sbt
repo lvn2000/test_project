@@ -5,7 +5,9 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / organization := "com.test"
 ThisBuild / organizationName := "test"
 
-javacOptions ++= Seq("-source", "1.17", "-target", "1.17")
+// Update Java version to be compatible with Java 24
+javacOptions ++= Seq("-source", "17", "-target", "17")
+scalacOptions ++= Seq("-target:17")
 
 lazy val root = (project in file("."))
   .settings(
